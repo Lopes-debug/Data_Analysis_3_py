@@ -12,8 +12,8 @@ from estrategia3 import *
 ## Exploratory Analysis
 
 ## some Pandas configs 
-pd.set_option('display.max_columns', None) 
-pd.set_option('display.expand_frame_repr', False) 
+# pd.set_option('display.max_columns', None) 
+# pd.set_option('display.expand_frame_repr', False) 
 pd.set_option('max_colwidth', 1)
 
 config_na = ['n/a', 'na', 'undefined'] #defining more names to pandas recognize as missing value
@@ -54,9 +54,9 @@ dataset_clean = dataset.drop(col_removed, axis=1)
 # print(df_dataset_clean)
 
 ## Apply method filling regressive in specific numerical columns
-# fix_missing_bfill(dataset_clean, 'TCP UL Retrans. Vol (Bytes)')
-# print('---------------------')
-# fix_missing_bfill(dataset_clean, 'TCP DL Retrans. Vol (Bytes)')
+fix_missing_bfill(dataset_clean, 'TCP UL Retrans. Vol (Bytes)')
+print('---------------------')
+fix_missing_bfill(dataset_clean, 'TCP DL Retrans. Vol (Bytes)')
 
 
 ## Verify if is possible fill missing values with column average
@@ -71,13 +71,44 @@ dataset_clean = dataset.drop(col_removed, axis=1)
 ## Result:
 ## highly biased. Now we can continue with progressive filling 
 
-# fix_missing_ffill(dataset_clean, 'Avg RTT DL (ms)')
-# fix_missing_ffill(dataset_clean, 'Avg RTT UL (ms)')
+fix_missing_ffill(dataset_clean, 'Avg RTT DL (ms)')
+fix_missing_ffill(dataset_clean, 'Avg RTT UL (ms)')
 
-df_dataset_clean = func_calc_percentual_valores_ausentes_coluna(dataset_clean)
-print(df_dataset_clean)
+# df_dataset_clean = func_calc_percentual_valores_ausentes_coluna(dataset_clean)
+# print(df_dataset_clean)
+
+## Categorical variables to be fixed
+fix_missing_value(dataset_clean, 'Handset Type', 'unknown')
+fix_missing_value(dataset_clean, 'Handset Manufacturer', 'unknown')
+# func_calc_percentual_valores_ausentes_linha(dataset_clean)
+
+drop_rows_with_missing_values(dataset_clean)
+# func_calc_percentual_valores_ausentes_linha(dataset_clean)
+
+## Convert data types
+# print(dataset_clean.dtypes)
+# print(dataset_clean.head())
+convert_to_datetime(dataset_clean, ['Start','End'])  
+
+str_cols = dataset_clean.select_dtypes(include='object').columns.tolist()
+convert_to_string(dataset_clean, str_cols)
+
+int_cols = ['Bearer Id', 'IMSI', 'MSISDN/Number', 'IMEI']
+convert_to_int(dataset_clean, int_cols)
+
+# print(dataset_clean.columns)
+# print(dataset_clean.dtypes)
+
+## Verify value of 2 columns that looks equal
+# print(dataset_clean[['Dur. (ms)', 'Dur. (s)']])
+copy_dur = dataset_clean[['Dur. (ms)', 'Dur. (s)']].copy()  #df copy of two columns
+multiply_by_factor(copy_dur, ['Dur. (ms)'], 1/1000)  #apply conversion (seconds to milliseconds)
+copy_dur['comparison'] = (copy_dur['Dur. (ms)'] == copy_dur['Dur. (s)']).apply(math.floor)  #create new column that will compare the two columns and finally apply comparison based on floor (piso/chão, arredondando)
+# print(copy_dur)
+drop_columns(dataset_clean, ['Dur. (s)'])  #drop the column equal
 
 
-
-
-
+## Outliers treatment
+col_numerical = dataset_clean.select_dtypes(include='float').index.tolist()
+outliers = TrataOutlier(dataset_clean)
+outliers.getOverview(col_numerical)
