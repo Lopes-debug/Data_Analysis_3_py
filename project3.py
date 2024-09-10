@@ -12,9 +12,8 @@ from estrategia3 import *
 ## Exploratory Analysis
 
 ## some Pandas configs 
-# pd.set_option('display.max_columns', None) 
+pd.set_option('display.max_columns', None) 
 # pd.set_option('display.expand_frame_repr', False) 
-pd.set_option('max_colwidth', 1)
 
 config_na = ['n/a', 'na', 'undefined'] #defining more names to pandas recognize as missing value
 dataset = pd.read_csv(r'C:\Users\leand\OneDrive\Documentos\FormacaoDSA\f_project3\Scripts-P3\dados\dataset.csv', na_values=config_na) #in addition to the default values of na_values, recognize the values of list too
@@ -59,11 +58,11 @@ print('---------------------')
 fix_missing_bfill(dataset_clean, 'TCP DL Retrans. Vol (Bytes)')
 
 
-## Verify if is possible fill missing values with column average
+## Verify if is possible fill missing values with  average of columns
 ## Template:
-## if asymmetry is between -0,5 and 0,5 the data is very symmetrical
-## if asymmetry is between -1,0 and -0,5 or between 0,5 e 1,0 the data is moderately symmetrical
-## if asymmetry is less than -1,0 or greater than, the data is highly biased (enviesados)
+## if asymmetry is between -0,5 and 0,5, the data is very symmetrical
+## if asymmetry is between -1,0 and -0,5 or between 0,5 e 1,0, the data is moderately symmetrical
+## if asymmetry is less than -1,0 or greater than 1, the data is highly biased (enviesados)
 
 # print(dataset_clean['Avg RTT DL (ms)'].skew(skipna=True))
 # print('---------------')
@@ -109,6 +108,14 @@ drop_columns(dataset_clean, ['Dur. (s)'])  #drop the column equal
 
 
 ## Outliers treatment
-col_numerical = dataset_clean.select_dtypes(include='float').index.tolist()
+col_numerical = dataset_clean.select_dtypes(include='float').columns.tolist()
 outliers = TrataOutlier(dataset_clean)
-outliers.getOverview(col_numerical)
+sergio = outliers.getOverview(col_numerical)
+print(sergio.head(11))
+print('----------')
+outliers.replace_outliers_with_fences(col_numerical)
+print('----------')
+sergio = outliers.getOverview(col_numerical)
+print(sergio.head(11))
+
+# dataset_clean.to_csv('dados/dataset_clean.csv')
